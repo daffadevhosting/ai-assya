@@ -1,7 +1,7 @@
 title: "Assya AI Store"
 author: "As-Syariah Bordir"
 description: "Pusat konveksi dan produsen bordir komputer Tasikmalaya. Menyediakan masker bordir, peci songkok, mukena, dan layanan bordir custom berkualitas terbaik."
-url: "https://as-syariahbordir.pages.dev"
+url: "https://as-syariahbordir.vercel.app"
 baseurl: ""
 timezone: "Asia/Jakarta"
 markdown: "kramdown"
@@ -16,7 +16,7 @@ dirs:
   includes: "_includes"
   data: "_data"
   plugins: "_plugins"
-  
+
 plugins:
   - jekyll-dotenv
 
