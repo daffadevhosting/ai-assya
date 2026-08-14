@@ -1,4 +1,4 @@
-  <!-- ==================== SEO ENGINE & APPLICATION SCRIPT ==================== -->
+<!-- ==================== SEO ENGINE & APPLICATION SCRIPT ==================== -->
   <div id="assya-config"
        data-api-endpoint="{{ site.api_endpoint | default: 'https://assya-ai.sendaljepit.workers.dev/api/chat' }}"
        data-products='{{ site.data.products | jsonify | escape }}'
@@ -598,6 +598,116 @@
       initProducts();
       updateCartUI();
     });
+
+// Lisensi Proteksi Template
+document.addEventListener('DOMContentLoaded', function () {
+  const devRaw = '{{ site.TEMPLATE_LICENSE }}';
+  const metaLicenseEl = document.querySelector('meta[name="license"]');
+  const metaLicenseRaw = metaLicenseEl ? metaLicenseEl.getAttribute('content') : null;
+
+  function safeAtob(value) {
+    try {
+      return atob(String(value));
+    } catch (e) {
+      return String(value || '');
+    }
+  }
+
+  const devDecoded = safeAtob(devRaw);
+  const metaDecoded = safeAtob(metaLicenseRaw);
+
+  let second = 10;
+
+  // Require both values to exist: compare raw and decoded permutations.
+  if (devRaw && metaLicenseRaw) {
+    const matches = (
+      metaLicenseRaw === devRaw ||
+      metaLicenseRaw === devDecoded ||
+      metaDecoded === devRaw ||
+      metaDecoded === devDecoded
+    );
+    if (matches) return; // license valid
+  }
+
+    const lockStyleAndHtml = `
+<style>
+    :root {
+        --bg-overlay: rgba(0, 0, 0, 0.85);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.8);
+        --accent-color: #ff4444;
+        --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    }
+
+    body {
+        background: var(--bg-overlay) !important;
+        overflow: hidden !important;
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-main);
+    }
+
+    #peringatan {
+        z-index: 9999999999;
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        text-align: center;
+        background: var(--bg-overlay);
+        color: var(--text-primary);
+    }
+
+    #peringatan h4 {
+        margin: 0 0 1.5rem;
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    #peringatan p {
+        margin: 0 0 1rem;
+        font-size: clamp(1rem, 2.5vw, 1.125rem);
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    #aktivasi {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 700;
+        color: var(--accent-color);
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 680px) {
+        #peringatan {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div id="peringatan">
+    <h4>🔒 Template is Locked Up</h4>
+    <p>Meta license template tidak valid.<br>Mohon jangan menghapus / merubah license.</p>
+    <span id="aktivasi">${second}</span>
+</div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', lockStyleAndHtml);
+    const aktivasiEl = document.getElementById('aktivasi');
+    const lockInterval = setInterval(function () {
+        second--;
+        if (aktivasiEl) aktivasiEl.textContent = second;
+        if (second <= 0) {
+            clearInterval(lockInterval);
+            window.location.href = "https://daffadevhosting.github.io/";
+        }
+    }, 1000);
+});
   </script>
 
 <script>

@@ -19,14 +19,12 @@
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCLqRflnb2__7D2QyEDsKE4eX42xi7mPTY",
-      authDomain: "as-syariahputra.firebaseapp.com",
-      databaseURL: "https://as-syariahputra.firebaseio.com",
-      projectId: "as-syariahputra",
-      storageBucket: "as-syariahputra.appspot.com",
-      messagingSenderId: "623446867158",
-      appId: "1:623446867158:web:fd4f2d077059589b1d5d77",
-      measurementId: "G-T9YPV5SSQL"
+      apiKey: "{{ site.API_KEY }}",
+      authDomain: "{{ site.AUTH_DOMAIN }}",
+      projectId: "{{ site.PROJECT_ID }}",
+      storageBucket: "{{ site.STORAGE_BUCKET }}",
+      messagingSenderId: "{{ site.SENDER_ID }}",
+      appId: "{{ site.APP_ID }}"
     };
 
     const app = initializeApp(firebaseConfig);
