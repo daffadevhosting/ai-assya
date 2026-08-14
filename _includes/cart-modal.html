@@ -1,0 +1,42 @@
+    <ion-modal id="cart-modal">
+      <ion-header>
+        <ion-toolbar style="--background: var(--wa-header); --color: white;">
+          <ion-title class="font-bold text-base">Keranjang Belanja Assya</ion-title>
+          <ion-buttons slot="end">
+            <ion-button onclick="closeCartModal()">
+              <ion-icon slot="icon-only" name="close-outline" class="text-2xl"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding bg-slate-50">
+        <div id="cart-items-container" class="flex flex-col gap-2.5"></div>
+
+        <div id="cart-empty-state" class="text-center py-12 flex flex-col items-center">
+          <div class="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-3">
+            <ion-icon name="cart-outline" class="text-3xl"></ion-icon>
+          </div>
+          <h3 class="font-bold text-gray-700 text-sm">Keranjang Anda Masih Kosong</h3>
+          <p class="text-xs text-gray-500 max-w-xs mt-1">Pilih produk di katalog atau ucapkan "mau beli [nama produk]" untuk memesan!</p>
+          <button onclick="closeCartModal()" class="hidden mt-4 bg-[#075e54] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-xs">
+            Tutup Keranjang
+          </button>
+        </div>
+      </ion-content>
+      <ion-footer id="cart-footer" class="hidden">
+        <div class="p-3.5 bg-white border-t border-gray-200">
+          <div class="flex justify-between items-center mb-1.5 text-xs">
+            <span class="text-gray-500">Total Item</span>
+            <span id="cart-item-count" class="font-bold text-slate-800">0 pcs</span>
+          </div>
+          <div class="flex justify-between items-center border-t border-dashed border-gray-200 pt-1.5 mb-3">
+            <span class="font-bold text-xs text-slate-800">Total Harga</span>
+            <span id="cart-total" class="font-extrabold text-sm text-[#075e54]">Rp 0</span>
+          </div>
+          <button onclick="checkoutToWhatsApp()" class="w-full bg-[#25d366] hover:bg-emerald-600 text-white font-bold py-2.5 px-3 rounded-xl shadow-md text-xs flex items-center justify-center gap-2 transition-all">
+            <ion-icon name="logo-whatsapp" class="text-lg"></ion-icon>
+            <span>Kirim Pesanan ke WA Admin</span>
+          </button>
+        </div>
+      </ion-footer>
+    </ion-modal>

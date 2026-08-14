@@ -1,0 +1,19 @@
+title: "Assya AI Store"
+author: "As-Syariah Bordir"
+description: "Pusat konveksi dan produsen bordir komputer Tasikmalaya. Menyediakan masker bordir, peci songkok, mukena, dan layanan bordir custom berkualitas terbaik."
+url: "https://as-syariahbordir.pages.dev"
+baseurl: ""
+timezone: "Asia/Jakarta"
+markdown: "kramdown"
+
+api_endpoint: "https://assya-ai.sendaljepit.workers.dev/api/chat"
+product_url: "https://as-syariahbordir.github.io/product.json"
+
+store:
+  name: "As-Syariah Bordir"
+  location: "Tasikmalaya, Jawa Barat"
+  address: "Tasikmalaya"
+  phone: "+6285156416662"
+  whatsapp: "6285156416662"
+  maps_url: "https://maps.app.goo.gl/yoPqRJYF17LJV8Wd9?g_st=ac"
+  theme_color: "#075e54"

@@ -1,0 +1,29 @@
+    <ion-modal id="store-info-modal">
+      <ion-header>
+        <ion-toolbar style="--background: var(--wa-header); --color: white;">
+          <ion-title class="font-bold text-base">Tentang Toko Kami</ion-title>
+          <ion-buttons slot="end">
+            <ion-button onclick="closeStoreInfoModal()">
+              <ion-icon slot="icon-only" name="close-outline" class="text-2xl"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="bg-slate-50">
+        <div class="p-4 space-y-3.5 max-w-lg mx-auto">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs text-center">
+            <div class="w-16 h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-emerald-600 shadow-md">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover" alt="Logo As-Syariah Bordir Tasikmalaya" />
+            </div>
+            <h2 class="font-bold text-base text-slate-800">As-Syariah Bordir</h2>
+            <p class="text-xs text-emerald-700 font-semibold mt-0.5">Produsen Bordir & Aksesoris Muslim Terpercaya</p>
+            <p class="text-[11px] text-gray-500 mt-1">Tasikmalaya, Jawa Barat, Indonesia</p>
+          </div>
+
+          <a href="https://wa.me/6285156416662?text=Halo%20Admin%20As-Syariah%20Bordir,%20saya%20ingin%20bertanya%20mengenai%20layanan%20dan%20produk%20bordir" target="_blank" class="w-full bg-[#25d366] hover:bg-emerald-600 active:scale-95 text-white font-bold py-3 px-4 rounded-xl shadow-md text-xs flex items-center justify-center gap-2 transition-all">
+            <ion-icon name="logo-whatsapp" class="text-xl"></ion-icon>
+            <span>Hubungi Kami via WhatsApp</span>
+          </a>
+        </div>
+      </ion-content>
+    </ion-modal>

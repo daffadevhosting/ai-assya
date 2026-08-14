@@ -1,0 +1,27 @@
+
+  <ion-app>
+    <ion-split-pane content-id="main-content" when="md">
+
+      <!-- SIDEBAR KATALOG PRODUK -->
+        {% include ion-menu.html %}
+
+      <!-- KONTEN UTAMA HALAMAN CHAT -->
+        {% include ion-page.html %}
+
+    </ion-split-pane>
+
+      <!-- MODAL PROFIL & RIWAYAT USER -->
+        {% include profile-modal.html %}
+
+      <!-- MODAL KERANJANG BELANJA -->
+        {% include cart-modal.html %}
+
+      <!-- MODAL INFO TOKO -->
+        {% include info-modal.html %}
+
+      <!-- TOAST NOTIFIKASI -->
+        {% include toast.html %}
+
+      <!-- PWA INSTALL BUTTON -->
+        {% include install-button.html %}
+  </ion-app>

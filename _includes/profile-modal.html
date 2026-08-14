@@ -1,0 +1,41 @@
+    <ion-modal id="user-profile-modal">
+      <ion-header>
+        <ion-toolbar style="--background: var(--wa-header); --color: white;">
+          <ion-title class="font-bold text-base">Akun Saya</ion-title>
+          <ion-buttons slot="end">
+            <ion-button onclick="closeProfileModal()">
+              <ion-icon slot="icon-only" name="close-outline" class="text-2xl"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="bg-slate-50">
+        <div class="p-4">
+          <div class="bg-white p-4 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-3.5 mb-4">
+            <div id="modal-user-avatar" class="w-14 h-14 rounded-full overflow-hidden bg-slate-100 border-2 border-emerald-600 flex items-center justify-center">
+              <ion-icon name="person" class="text-2xl text-gray-400"></ion-icon>
+            </div>
+            <div>
+              <h3 id="modal-user-name" class="font-bold text-slate-800 text-sm">Nama Pengguna</h3>
+              <p id="modal-user-email" class="text-xs text-gray-500 truncate max-w-[200px]">email@gmail.com</p>
+              <span class="inline-block mt-1 bg-emerald-50 text-emerald-700 text-[10px] font-semibold px-2 py-0.5 rounded border border-emerald-200">
+                Terverifikasi Firebase
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <div class="flex justify-between items-center mb-2 px-1">
+              <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Riwayat Pembelian</h4>
+              <span id="purchase-count-badge" class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">0 Pesanan</span>
+            </div>
+            <div id="purchase-history-container" class="max-h-[300px] overflow-y-auto no-scrollbar"></div>
+          </div>
+
+          <button onclick="window.logoutUser()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 border border-rose-200 transition-all">
+            <ion-icon name="log-out-outline" class="text-base"></ion-icon>
+            <span>Keluar Akun Google</span>
+          </button>
+        </div>
+      </ion-content>
+    </ion-modal>

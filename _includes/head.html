@@ -1,0 +1,117 @@
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <meta name="theme-color" content="{{ site.store.theme_color | default: '#075e54' }}" id="theme-color">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="{{ site.title }}">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Assya AI">
+
+  <meta name="msapplication-TileColor" content="{{ site.store.theme_color | default: '#075e54' }}">
+
+  <title>{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="description" content="{{ site.description }}">
+  <meta name="keywords" content="bordir tasikmalaya, masker bordir, peci bordir, as-syariah bordir, konveksi bordir, bordir komputer, aksesoris muslim">
+  <meta name="author" content="{{ site.author }}">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="{{ site.url }}{{ page.url | default: '/' }}" id="canonical-url" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ '/assets/icon/apple-touch-icon.png' | relative_url }}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ '/assets/icon/favicon-32x32.png' | relative_url }}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ '/assets/icon/favicon-16x16.png' | relative_url }}">
+  <link rel="manifest" href="{{ '/assets/icon/site.webmanifest' | relative_url }}">
+
+  <meta name="geo.region" content="ID-JB" />
+  <meta name="geo.placename" content="Tasikmalaya" />
+  <meta name="geo.position" content="-7.3274;108.2207" />
+  <meta name="ICBM" content="-7.3274, 108.2207" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ site.url }}{{ page.url | default: '/' }}" id="og-url" />
+  <meta property="og:title" content="{{ page.title | default: site.title }}" id="og-title" />
+  <meta property="og:description" content="{{ site.description }}" id="og-desc" />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1584634731339-252c581abfc5?auto=format&fit=crop&w=1200&q=80" id="og-image" />
+  <meta property="og:locale" content="id_ID" />
+  <meta property="og:site_name" content="{{ site.store.name }}" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="{{ site.title }}" id="tw-title" />
+  <meta name="twitter:description" content="{{ site.description }}" id="tw-desc" />
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1584634731339-252c581abfc5?auto=format&fit=crop&w=1200&q=80" id="tw-image" />
+
+  <script type="application/ld+json" id="schema-store">
+  {
+    "@context": "https://schema.org",
+    "@type": "ClothingStore",
+    "name": "{{ site.store.name }}",
+    "image": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=500&q=80",
+    "@id": "{{ site.url }}/#store",
+    "url": "{{ site.url }}/",
+    "telephone": "{{ site.store.phone }}",
+    "priceRange": "Rp15.000 - Rp500.000",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ site.store.address }}",
+      "addressLocality": "{{ site.store.location }}",
+      "addressRegion": "Jawa Barat",
+      "postalCode": "46100",
+      "addressCountry": "ID"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": -7.3274,
+      "longitude": 108.2207
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+      ],
+      "opens": "08:00",
+      "closes": "21:00"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json" id="schema-product">
+  {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": "{{ site.data.products[0].title }}",
+    "image": "{{ site.data.products[0].image }}",
+    "description": "{{ site.data.products[0].description }}",
+    "brand": {
+      "@type": "Brand",
+      "name": "{{ site.store.name }}"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": "{{ site.url }}/",
+      "priceCurrency": "IDR",
+      "price": "{{ site.data.products[0].discount | replace: '.', '' }}",
+      "availability": "https://schema.org/InStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "{{ site.store.name }}"
+      }
+    }
+  }
+  </script>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core@8/dist/ionic/ionic.esm.js"></script>
+  <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core@8/dist/ionic/ionic.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core@8/css/ionic.bundle.css" />
+
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+{% include module.html %}
+
+{% include style.html %}
+</head>

@@ -1,0 +1,207 @@
+  <!-- Firebase JS SDK (v11 Modular) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithCustomToken, 
+      signInAnonymously, 
+      GoogleAuthProvider, 
+      signInWithPopup, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      onSnapshot, 
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCLqRflnb2__7D2QyEDsKE4eX42xi7mPTY",
+      authDomain: "as-syariahputra.firebaseapp.com",
+      databaseURL: "https://as-syariahputra.firebaseio.com",
+      projectId: "as-syariahputra",
+      storageBucket: "as-syariahputra.appspot.com",
+      messagingSenderId: "623446867158",
+      appId: "1:623446867158:web:fd4f2d077059589b1d5d77",
+      measurementId: "G-T9YPV5SSQL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const appId = 'as-syariahputra';
+
+    window.fbAuth = auth;
+    window.fbDb = db;
+    window.fbAppId = appId;
+
+    let currentUser = null;
+
+    async function initFirebase() {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        try {
+          await signInAnonymously(auth);
+        } catch (e) {
+          console.error("Gagal login anonim:", e);
+        }
+      }
+    }
+
+    initFirebase();
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      window.currentUser = user;
+      updateAuthUI(user);
+
+      if (user && !user.isAnonymous) {
+        listenUserPurchaseHistory(user.uid);
+      }
+    });
+
+    window.loginWithGoogle = async function() {
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        showToast(`Selamat datang, ${result.user.displayName || 'Pengguna'}!`);
+      } catch (error) {
+        showToast("Proses login Google dibatalkan atau gagal.");
+      }
+    };
+
+    window.logoutUser = async function() {
+      try {
+        await signOut(auth);
+        await signInAnonymously(auth);
+        showToast("Berhasil keluar dari akun.");
+        closeProfileModal();
+      } catch (error) {
+        console.error("Error logout:", error);
+      }
+    };
+
+    window.saveChatToFirestore = async function(sender, messageText) {
+      if (!auth.currentUser) return;
+      const uid = auth.currentUser.uid;
+      try {
+        const chatCol = collection(db, 'artifacts', appId, 'users', uid, 'chat_history');
+        await addDoc(chatCol, {
+          sender: sender,
+          text: messageText,
+          timestamp: serverTimestamp()
+        });
+      } catch (err) {
+        console.error("Gagal menyimpan percakapan:", err);
+      }
+    };
+
+    window.savePurchaseToFirestore = async function(cartItems, totalAmount) {
+      if (!auth.currentUser) return;
+      const uid = auth.currentUser.uid;
+      try {
+        const purchaseCol = collection(db, 'artifacts', appId, 'users', uid, 'purchase_history');
+        await addDoc(purchaseCol, {
+          items: cartItems,
+          total: totalAmount,
+          status: "Menunggu Konfirmasi Admin",
+          createdAt: serverTimestamp(),
+          formattedDate: new Date().toLocaleDateString('id-ID', {
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+          })
+        });
+        showToast("Transaksi tersimpan di Riwayat Pembelian!");
+      } catch (err) {
+        console.error("Gagal menyimpan transaksi:", err);
+      }
+    };
+
+    function listenUserPurchaseHistory(uid) {
+      try {
+        const purchaseCol = collection(db, 'artifacts', appId, 'users', uid, 'purchase_history');
+        onSnapshot(purchaseCol, (snapshot) => {
+          const purchases = [];
+          snapshot.forEach((doc) => {
+            purchases.push({ id: doc.id, ...doc.data() });
+          });
+          renderPurchaseHistoryUI(purchases);
+        });
+      } catch (err) {
+        console.error("Firestore Error:", err);
+      }
+    }
+
+    function updateAuthUI(user) {
+      const chip = document.getElementById('user-auth-chip');
+      const avatarContainer = document.getElementById('user-chip-avatar');
+      const label = document.getElementById('user-chip-label');
+
+      if (user && !user.isAnonymous) {
+        const photoUrl = user.photoURL || `https://placehold.co/80x80/075e54/white.png?text=${user.displayName ? user.displayName.charAt(0) : 'U'}`;
+        const name = user.displayName ? user.displayName.split(' ')[0] : 'Profil';
+
+        avatarContainer.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover rounded-full" />`;
+        label.innerText = name;
+        chip.onclick = window.openProfileModal;
+        chip.className = "bg-emerald-700/80 hover:bg-emerald-700 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1.5 border border-emerald-400/40 cursor-pointer transition-all";
+      } else {
+        avatarContainer.innerHTML = `<ion-icon name="logo-google" class="text-white text-sm"></ion-icon>`;
+        label.innerText = "Login Google";
+        chip.onclick = window.loginWithGoogle;
+        chip.className = "bg-emerald-800/60 hover:bg-emerald-800 text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-emerald-500/30 cursor-pointer transition-all active:scale-95";
+      }
+    }
+
+    function renderPurchaseHistoryUI(purchases) {
+      const container = document.getElementById('purchase-history-container');
+      const countBadge = document.getElementById('purchase-count-badge');
+      if (!container) return;
+
+      if (countBadge) countBadge.innerText = `${purchases.length} Pesanan`;
+
+      if (purchases.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 text-gray-400">
+            <ion-icon name="bag-handle-outline" class="text-3xl mb-1"></ion-icon>
+            <p class="text-xs">Belum ada riwayat pembelian</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      purchases.reverse().forEach((p) => {
+        const dateStr = p.formattedDate || 'Baru Saja';
+        html += `
+          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-xs mb-2">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-1.5 mb-2 text-[10px]">
+              <span class="text-gray-500">${dateStr}</span>
+              <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">${p.status || 'Diperiksa'}</span>
+            </div>
+            <div class="space-y-1">
+              ${p.items.map(item => `
+                <div class="flex justify-between items-center text-xs">
+                  <span class="font-medium text-slate-800">${item.name} (${item.warna})</span>
+                  <span class="text-gray-600">${item.quantity}x Rp ${item.price.toLocaleString('id-ID')}</span>
+                </div>
+              `).join('')}
+            </div>
+            <div class="flex justify-between items-center border-t border-dashed border-gray-200 pt-2 mt-2 text-xs">
+              <span class="font-bold text-slate-700">Total Harga</span>
+              <span class="font-extrabold text-[#075e54]">Rp ${p.total.toLocaleString('id-ID')}</span>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+  </script>

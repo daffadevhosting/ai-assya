@@ -1,0 +1,29 @@
+      <ion-menu content-id="main-content" side="start" menu-id="product-menu">
+        <ion-header class="ion-no-border">
+          <ion-toolbar style="--background: var(--wa-header); --color: #ffffff;" class="min-h-[50px]">
+            <h1 class="font-bold text-sm px-3 py-2 text-white">Katalog Produk</h1>
+            <ion-buttons slot="end" class="md:hidden">
+              <ion-button onclick="closeProductMenu()">
+                <ion-icon slot="icon-only" name="close-outline" class="text-xl"></ion-icon>
+              </ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+
+          <ion-toolbar style="--background: var(--wa-header);" class="px-3 pb-2 pt-0 min-h-0">
+            <div class="bg-white/15 rounded-md flex items-center px-2.5 py-1 border border-white/20 text-white">
+              <ion-icon name="search-outline" class="text-emerald-200 text-sm mr-2 flex-shrink-0"></ion-icon>
+              <input type="text" id="search-product-input" placeholder="Cari produk bordir..." class="w-full bg-transparent text-xs text-white placeholder-emerald-200/70 outline-none" oninput="filterProducts()" />
+            </div>
+          </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="bg-white">
+          <div class="px-3 py-1.5 bg-slate-100 border-b border-gray-200 flex justify-between items-center text-[11px] text-gray-500 font-semibold tracking-wide">
+            <span>PILIH PRODUK UNTUK DITANYAKAN</span>
+            <span id="product-count-badge" class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.2 rounded font-bold">0</span>
+          </div>
+
+          <!-- Semantic Navigation Container for SEO Crawlers -->
+          <nav id="product-list-container" class="divide-y divide-gray-100" aria-label="Daftar Produk As-Syariah Bordir"></nav>
+        </ion-content>
+      </ion-menu>
