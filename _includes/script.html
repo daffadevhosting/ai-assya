@@ -34,26 +34,21 @@
         const rawPrice = product.discount ? product.discount.replace(/\./g, '') : '15000';
         const pageDesc = `${product.description} Harga: Rp ${product.discount} (${product.stok}). Pesan langsung via WhatsApp di As-Syariah Bordir Tasikmalaya.`;
 
-        // 1. Update Title & Canonical
         document.title = pageTitle;
         document.getElementById('canonical-url')?.setAttribute('href', productUrl);
 
-        // 2. Update Meta Description
         let metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', pageDesc);
 
-        // 3. Update OpenGraph (Facebook / WhatsApp Share Preview)
         document.getElementById('og-title')?.setAttribute('content', pageTitle);
         document.getElementById('og-desc')?.setAttribute('content', pageDesc);
         document.getElementById('og-url')?.setAttribute('content', productUrl);
         document.getElementById('og-image')?.setAttribute('content', product.image);
 
-        // 4. Update Twitter Card
         document.getElementById('tw-title')?.setAttribute('content', pageTitle);
         document.getElementById('tw-desc')?.setAttribute('content', pageDesc);
         document.getElementById('tw-image')?.setAttribute('content', product.image);
 
-        // 5. Dynamic Update Schema.org Product (Rich Snippet Google)
         const productSchema = {
           "@context": "https://schema.org/",
           "@type": "Product",
@@ -86,7 +81,6 @@
           schemaTag.textContent = JSON.stringify(productSchema, null, 2);
         }
 
-        // 6. Update URL Hash tanpa reload (Deep Linking untuk Google Bot)
         if (window.location.hash !== `#product-${product.id}`) {
           history.pushState(null, null, `#product-${product.id}`);
         }
@@ -144,18 +138,19 @@
       const container = document.getElementById('message-container');
       if (!container) return;
 
-      // Jalankan hanya jika percakapan belum ada / masih kosong
-      if (container.children.length === 0) {
+      // Cek apakah balon pesan chat sudah ada
+      const existingBubbles = container.querySelectorAll('.assya-bubble');
+      if (existingBubbles.length === 0) {
         showTypingIndicator();
 
         welcomeTimer = setTimeout(() => {
           removeTypingIndicator();
 
-          // Pastikan container masih kosong saat render welcome text
-          if (container.children.length === 0) {
+          const currentBubbles = container.querySelectorAll('.assya-bubble');
+          if (currentBubbles.length === 0) {
             const time = getTimeString();
-            const messageWrapper = document.createElement('div');
-            messageWrapper.className = 'flex flex-col items-start max-w-[90%] md:max-w-[80%] mr-auto transition-all animate-fade-in';
+            const messageWrapper = document.createElement('article');
+            messageWrapper.className = 'flex flex-col items-start max-w-[90%] md:max-w-[80%] assya-bubble';
             messageWrapper.innerHTML = `
               <div class="bg-white rounded-lg rounded-tl-none p-3 bubble-shadow relative text-slate-800 text-xs leading-relaxed border border-gray-100">
                 <p class="font-bold text-[#075e54] text-[11px] mb-1 flex items-center gap-1">
@@ -179,7 +174,7 @@
             container.appendChild(messageWrapper);
             scrollToBottom();
           }
-        }, 15000); // Jeda 15 detik (15000ms)
+        }, 15000); // Delay 15 detik
       }
     }
 
@@ -299,7 +294,6 @@
 
       showToast(`Membahas: ${currentProduct.title}`);
       if (triggerGreeting) {
-        // Jika user langsung pilih produk, batalkan timer welcome agar tidak tumpang tindih
         if (welcomeTimer) clearTimeout(welcomeTimer);
         removeTypingIndicator();
         sendProductDetailGreeting(currentProduct);
@@ -453,7 +447,7 @@
       }
 
       const messageWrapper = document.createElement('div');
-      messageWrapper.className = `flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} max-w-[90%] md:max-w-[80%] ${sender === 'user' ? 'ml-auto' : 'mr-auto'}`;
+      messageWrapper.className = `flex flex-col ${sender === 'user' ? 'items-end' : 'items-start'} max-w-[90%] md:max-w-[80%] ${sender === 'user' ? 'ml-auto' : 'mr-auto'} assya-bubble`;
 
       if (sender === 'user') {
         messageWrapper.innerHTML = `
@@ -561,7 +555,6 @@
       const text = input.value.trim();
       if (!text) return;
 
-      // Jika user langsung mengirim pesan sebelum timer welcome selesai, batalkan timer welcome
       if (welcomeTimer) clearTimeout(welcomeTimer);
 
       input.value = '';
@@ -661,7 +654,7 @@
     window.addEventListener('load', () => {
       initProducts();
       updateCartUI();
-      renderWelcomeMessage(); // Panggil pembuatan Welcome Text Dinamis
+      renderWelcomeMessage();
     });
 
 // Lisensi Proteksi Template
