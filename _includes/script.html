@@ -20,6 +20,7 @@
 
     let currentProduct = null;
     let simpleCart = [];
+    let welcomeTimer = null;
 
     // ==========================================
     // AUTOMATED DYNAMIC SEO ENGINE
@@ -35,22 +36,22 @@
 
         // 1. Update Title & Canonical
         document.title = pageTitle;
-        document.getElementById('canonical-url').setAttribute('href', productUrl);
+        document.getElementById('canonical-url')?.setAttribute('href', productUrl);
 
         // 2. Update Meta Description
         let metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', pageDesc);
 
         // 3. Update OpenGraph (Facebook / WhatsApp Share Preview)
-        document.getElementById('og-title').setAttribute('content', pageTitle);
-        document.getElementById('og-desc').setAttribute('content', pageDesc);
-        document.getElementById('og-url').setAttribute('content', productUrl);
-        document.getElementById('og-image').setAttribute('content', product.image);
+        document.getElementById('og-title')?.setAttribute('content', pageTitle);
+        document.getElementById('og-desc')?.setAttribute('content', pageDesc);
+        document.getElementById('og-url')?.setAttribute('content', productUrl);
+        document.getElementById('og-image')?.setAttribute('content', product.image);
 
         // 4. Update Twitter Card
-        document.getElementById('tw-title').setAttribute('content', pageTitle);
-        document.getElementById('tw-desc').setAttribute('content', pageDesc);
-        document.getElementById('tw-image').setAttribute('content', product.image);
+        document.getElementById('tw-title')?.setAttribute('content', pageTitle);
+        document.getElementById('tw-desc')?.setAttribute('content', pageDesc);
+        document.getElementById('tw-image')?.setAttribute('content', product.image);
 
         // 5. Dynamic Update Schema.org Product (Rich Snippet Google)
         const productSchema = {
@@ -115,6 +116,7 @@
     function showToast(message) {
       const toast = document.getElementById('toast');
       const toastText = document.getElementById('toast-text');
+      if (!toast || !toastText) return;
       toastText.innerText = message;
       toast.classList.remove('opacity-0');
       toast.classList.add('opacity-100');
@@ -129,8 +131,56 @@
         const content = document.getElementById('chat-content');
         if (content && typeof content.scrollToBottom === 'function') {
           content.scrollToBottom(300);
+        } else if (content) {
+          content.scrollTop = content.scrollHeight;
         }
       }, 100);
+    }
+
+    // ==========================================
+    // WELCOME MESSAGE DINAMIS (JEDA 15 DETIK)
+    // ==========================================
+    function renderWelcomeMessage() {
+      const container = document.getElementById('message-container');
+      if (!container) return;
+
+      // Jalankan hanya jika percakapan belum ada / masih kosong
+      if (container.children.length === 0) {
+        showTypingIndicator();
+
+        welcomeTimer = setTimeout(() => {
+          removeTypingIndicator();
+
+          // Pastikan container masih kosong saat render welcome text
+          if (container.children.length === 0) {
+            const time = getTimeString();
+            const messageWrapper = document.createElement('div');
+            messageWrapper.className = 'flex flex-col items-start max-w-[90%] md:max-w-[80%] mr-auto transition-all animate-fade-in';
+            messageWrapper.innerHTML = `
+              <div class="bg-white rounded-lg rounded-tl-none p-3 bubble-shadow relative text-slate-800 text-xs leading-relaxed border border-gray-100">
+                <p class="font-bold text-[#075e54] text-[11px] mb-1 flex items-center gap-1">
+                  <span>Assya AI</span>
+                  <ion-icon name="sparkles" class="text-amber-500 text-xs"></ion-icon>
+                </p>
+
+                <div class="space-y-2 text-slate-700">
+                  <p>Halo 👋, saya <b>ASSYA</b>, Asisten Virtual As-Syariah Bordir Tasikmalaya yang siap membantu Anda.<br/>Ada yang bisa Assya bantu hari ini? Anda bisa bertanya seputar produk bordir komputer, lokasi toko, atau memilih produk langsung dari katalog!</p>
+
+                  <p class="text-[11px] bg-[#ffeecd] p-2 rounded border border-slate-200/60 text-slate-600 leading-normal">
+                    Perlu diketahui bahwa percakapan ini berbasis AI untuk melayani pesanan produk bordir Anda secara otomatis.<br/><br/>
+                    <i>Dengan melanjutkan percakapan ini, pengguna dianggap telah memahami dan menyetujui ketentuan tersebut.</i>
+                  </p>
+                </div>
+
+                <span class="text-[9px] text-gray-400 block text-right mt-1.5">${time}</span>
+              </div>
+            `;
+
+            container.appendChild(messageWrapper);
+            scrollToBottom();
+          }
+        }, 15000); // Jeda 15 detik (15000ms)
+      }
     }
 
     async function initProducts() {
@@ -156,10 +206,10 @@
         document.getElementById('modal-user-email').innerText = u.email || '-';
         document.getElementById('modal-user-avatar').innerHTML = `<img src="${u.photoURL}" class="w-full h-full object-cover rounded-full"/>`;
       }
-      document.getElementById('user-profile-modal').present();
+      document.getElementById('user-profile-modal')?.present();
     }
     function closeProfileModal() {
-      document.getElementById('user-profile-modal').dismiss();
+      document.getElementById('user-profile-modal')?.dismiss();
     }
     window.openProfileModal = openProfileModal;
 
@@ -175,7 +225,9 @@
 
     function renderProductMenuList(products) {
       const container = document.getElementById('product-list-container');
-      document.getElementById('product-count-badge').innerText = products.length;
+      const badge = document.getElementById('product-count-badge');
+      if (badge) badge.innerText = products.length;
+      if (!container) return;
 
       if (products.length === 0) {
         container.innerHTML = `
@@ -196,7 +248,6 @@
           ? 'text-[9px] text-rose-700 bg-rose-100 px-1 py-0.2 rounded font-medium flex-shrink-0'
           : 'text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded font-medium flex-shrink-0';
 
-        // Semantic HTML <a href> added for crawler link propagation
         html += `
           <a href="#product-${p.id}" onclick="selectProductFromMenu('${p.id}'); return false;" class="block px-3 py-2.5 bg-white hover:bg-slate-50 cursor-pointer flex gap-2.5 items-center transition-colors relative ${isSelected ? 'bg-emerald-50/50' : ''}">
             ${isSelected ? '<div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-600"></div>' : ''}
@@ -240,7 +291,6 @@
       currentProduct = foundProduct;
       renderProductMenuList(allProducts); 
 
-      // Jalankan SEO Engine saat produk dipilih!
       SEOEngine.updateSEO(currentProduct);
 
       if (window.innerWidth < 768) {
@@ -249,6 +299,9 @@
 
       showToast(`Membahas: ${currentProduct.title}`);
       if (triggerGreeting) {
+        // Jika user langsung pilih produk, batalkan timer welcome agar tidak tumpang tindih
+        if (welcomeTimer) clearTimeout(welcomeTimer);
+        removeTypingIndicator();
         sendProductDetailGreeting(currentProduct);
       }
     }
@@ -304,26 +357,30 @@
       const badge = document.getElementById('cart-badge');
       const totalQuantity = simpleCart.reduce((sum, item) => sum + item.quantity, 0);
 
-      if (totalQuantity > 0) {
-        badge.innerText = totalQuantity;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
+      if (badge) {
+        if (totalQuantity > 0) {
+          badge.innerText = totalQuantity;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
       }
 
       const container = document.getElementById('cart-items-container');
       const emptyState = document.getElementById('cart-empty-state');
       const footer = document.getElementById('cart-footer');
 
+      if (!container) return;
+
       if (simpleCart.length === 0) {
         container.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        footer.classList.add('hidden');
+        emptyState?.classList.remove('hidden');
+        footer?.classList.add('hidden');
         return;
       }
 
-      emptyState.classList.add('hidden');
-      footer.classList.remove('hidden');
+      emptyState?.classList.add('hidden');
+      footer?.classList.remove('hidden');
 
       let html = '';
       let grandTotal = 0;
@@ -381,13 +438,14 @@
       window.open(waUrl, '_blank');
     }
 
-    function openCartModal() { document.getElementById('cart-modal').present(); }
-    function closeCartModal() { document.getElementById('cart-modal').dismiss(); }
-    function openStoreInfoModal() { document.getElementById('store-info-modal').present(); }
-    function closeStoreInfoModal() { document.getElementById('store-info-modal').dismiss(); }
+    function openCartModal() { document.getElementById('cart-modal')?.present(); }
+    function closeCartModal() { document.getElementById('cart-modal')?.dismiss(); }
+    function openStoreInfoModal() { document.getElementById('store-info-modal')?.present(); }
+    function closeStoreInfoModal() { document.getElementById('store-info-modal')?.dismiss(); }
 
     function addMessageToUI(sender, text, extraData = null) {
       const container = document.getElementById('message-container');
+      if (!container) return;
       const time = getTimeString();
 
       if (typeof window.saveChatToFirestore === 'function') {
@@ -446,11 +504,13 @@
 
     function showTypingIndicator() {
       const statusText = document.getElementById('store-status');
-      statusText.innerText = 'Assya sedang mengetik...';
-      statusText.classList.add('text-amber-300');
+      if (statusText) {
+        statusText.innerText = 'Assya sedang mengetik...';
+        statusText.classList.add('text-amber-300');
+      }
 
       const container = document.getElementById('message-container');
-      if (document.getElementById('wa-typing-bubble')) return;
+      if (!container || document.getElementById('wa-typing-bubble')) return;
 
       const typingWrapper = document.createElement('div');
       typingWrapper.id = 'wa-typing-bubble';
@@ -469,8 +529,10 @@
 
     function removeTypingIndicator() {
       const statusText = document.getElementById('store-status');
-      statusText.innerText = 'Online | As-Syariah Bordir';
-      statusText.classList.remove('text-amber-300');
+      if (statusText) {
+        statusText.innerText = 'Online | As-Syariah Bordir';
+        statusText.classList.remove('text-amber-300');
+      }
 
       const bubble = document.getElementById('wa-typing-bubble');
       if (bubble) bubble.remove();
@@ -498,6 +560,9 @@
       const input = document.getElementById('user-input');
       const text = input.value.trim();
       if (!text) return;
+
+      // Jika user langsung mengirim pesan sebelum timer welcome selesai, batalkan timer welcome
+      if (welcomeTimer) clearTimeout(welcomeTimer);
 
       input.value = '';
       addMessageToUI('user', text);
@@ -594,9 +659,9 @@
     });
 
     window.addEventListener('load', () => {
-      document.getElementById('init-time').innerText = getTimeString();
       initProducts();
       updateCartUI();
+      renderWelcomeMessage(); // Panggil pembuatan Welcome Text Dinamis
     });
 
 // Lisensi Proteksi Template
@@ -618,7 +683,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let second = 10;
 
-  // Require both values to exist: compare raw and decoded permutations.
   if (devRaw && metaLicenseRaw) {
     const matches = (
       metaLicenseRaw === devRaw ||
@@ -626,7 +690,7 @@ document.addEventListener('DOMContentLoaded', function () {
       metaDecoded === devRaw ||
       metaDecoded === devDecoded
     );
-    if (matches) return; // license valid
+    if (matches) return;
   }
 
     const lockStyleAndHtml = `
@@ -712,36 +776,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <script>
 (() => {
-
-  const installButton =
-    document.getElementById("pwa-install-btn");
-
+  const installButton = document.getElementById("pwa-install-btn");
   if (!installButton) return;
 
-  window.addEventListener(
-    "assya:pwa-installable",
-    () => {
+  window.addEventListener("assya:pwa-installable", () => {
+    if (window.isAssyaPWA()) return;
+    installButton.classList.remove("hidden");
+    installButton.classList.add("flex");
+  });
 
-      if (window.isAssyaPWA()) {
-        return;
-      }
-
-      installButton.classList.remove("hidden");
-      installButton.classList.add("flex");
-
-    }
-  );
-
-  window.addEventListener(
-    "assya:pwa-installed",
-    () => {
-
-      installButton.classList.add("hidden");
-      installButton.classList.remove("flex");
-
-    }
-  );
-
+  window.addEventListener("assya:pwa-installed", () => {
+    installButton.classList.add("hidden");
+    installButton.classList.remove("flex");
+  });
 })();
 </script>
 
@@ -757,57 +804,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let deferredInstallPrompt = null;
 
-  // ==========================================
-  // SERVICE WORKER
-  // ==========================================
-
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", async () => {
       try {
         const registration = await navigator.serviceWorker.register(
           PWA_CONFIG.serviceWorker,
-          {
-            scope: "/"
-          }
+          { scope: "/" }
         );
-
-        console.log(
-          "[PWA] Service Worker aktif:",
-          registration.scope
-        );
-
+        console.log("[PWA] Service Worker aktif:", registration.scope);
       } catch (error) {
-        console.error(
-          "[PWA] Gagal register Service Worker:",
-          error
-        );
+        console.error("[PWA] Gagal register Service Worker:", error);
       }
     });
   }
 
-  // ==========================================
-  // INSTALL PROMPT
-  // ==========================================
-
   window.addEventListener("beforeinstallprompt", event => {
     console.log("[PWA] beforeinstallprompt tersedia");
-
     event.preventDefault();
-
     deferredInstallPrompt = event;
-
-    document.documentElement.classList.add(
-      "pwa-installable"
-    );
-
-    window.dispatchEvent(
-      new CustomEvent("assya:pwa-installable")
-    );
+    document.documentElement.classList.add("pwa-installable");
+    window.dispatchEvent(new CustomEvent("assya:pwa-installable"));
   });
-
-  // ==========================================
-  // INSTALL APP
-  // ==========================================
 
   window.installAssyaPWA = async function () {
     if (!deferredInstallPrompt) {
@@ -817,53 +834,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
       deferredInstallPrompt.prompt();
-
       const result = await deferredInstallPrompt.userChoice;
-
-      console.log(
-        "[PWA] User choice:",
-        result.outcome
-      );
-
+      console.log("[PWA] User choice:", result.outcome);
       deferredInstallPrompt = null;
-
-      document.documentElement.classList.remove(
-        "pwa-installable"
-      );
-
+      document.documentElement.classList.remove("pwa-installable");
       return result.outcome === "accepted";
-
     } catch (error) {
-      console.error(
-        "[PWA] Install error:",
-        error
-      );
-
+      console.error("[PWA] Install error:", error);
       return false;
     }
   };
 
-  // ==========================================
-  // APP INSTALLED
-  // ==========================================
-
   window.addEventListener("appinstalled", () => {
     console.log("[PWA] Assya AI berhasil diinstall.");
-
     deferredInstallPrompt = null;
-
-    document.documentElement.classList.remove(
-      "pwa-installable"
-    );
-
-    window.dispatchEvent(
-      new CustomEvent("assya:pwa-installed")
-    );
+    document.documentElement.classList.remove("pwa-installable");
+    window.dispatchEvent(new CustomEvent("assya:pwa-installed"));
   });
-
-  // ==========================================
-  // DETECT STANDALONE
-  // ==========================================
 
   window.isAssyaPWA = function () {
     return (
@@ -872,21 +859,14 @@ document.addEventListener('DOMContentLoaded', function () {
     );
   };
 
-  // ==========================================
-  // THEME COLOR
-  // ==========================================
-
   function updateThemeColor(color) {
-    const meta = document.querySelector(
-      'meta[name="theme-color"]'
-    );
-
+    const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
       meta.setAttribute("content", color);
     }
   }
 
   updateThemeColor(PWA_CONFIG.themeColor);
-
 })();
 </script>
+
