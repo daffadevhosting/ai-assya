@@ -14,17 +14,25 @@
     const WORKER_ENDPOINT = configEl?.dataset.apiEndpoint || 'https://assya-ai.sendaljepit.workers.dev/api/chat';
     const BASE_WORKER_URL = WORKER_ENDPOINT.replace(/\/api\/chat$/, '');
 
+    // Cegah inisialisasi Firebase berulang
+    let firebaseInitialized = false;
+
     // Fetch Firebase Config dari Workers Config Endpoint
     async function initFirebase() {
+      if (firebaseInitialized) return;
+      firebaseInitialized = true;
+
       try {
         const res = await fetch(`${BASE_WORKER_URL}/api/config`);
-        const data = await res.json();
-        const firebaseConfig = data.firebase;
+        if (!res.ok) throw new Error("Config not found");
 
-        const app = initializeApp(firebaseConfig);
+        const data = await res.json();
+        if (!data?.firebase) throw new Error("Firebase config invalid");
+
+        const app = initializeApp(data.firebase);
         const auth = getAuth(app);
 
-        // Pastikan Sesi Login Bertahan Meskipun Halaman Di-refresh
+        // Tunggu setPersistence selesai sebelum melanjutkan
         await setPersistence(auth, browserLocalPersistence);
 
         const provider = new GoogleAuthProvider();
@@ -33,9 +41,16 @@
         onAuthStateChanged(auth, (user) => {
           window.currentUser = user;
           updateAuthUI(user);
+
+          // Simpan UID ke localStorage sebagai fallback
           if (user) {
+            localStorage.setItem('assya_user_uid', user.uid);
             loadUserChatHistory(user.uid);
+          } else {
+            localStorage.removeItem('assya_user_uid');
           }
+        }, (error) => {
+          console.error("Error di onAuthStateChanged:", error);
         });
 
         // Expose fungsi Login & Logout ke Window Global
@@ -44,6 +59,7 @@
             const result = await signInWithPopup(auth, provider);
             window.currentUser = result.user;
             updateAuthUI(result.user);
+            localStorage.setItem('assya_user_uid', result.user.uid);
             loadUserChatHistory(result.user.uid);
             showToast(`Selamat datang, ${result.user.displayName}!`);
           } catch (error) {
@@ -56,6 +72,7 @@
           try {
             await signOut(auth);
             window.currentUser = null;
+            localStorage.removeItem('assya_user_uid');
             updateAuthUI(null);
             showToast("Berhasil Keluar");
           } catch (error) {
@@ -85,18 +102,26 @@
     }
 
     async function loadUserChatHistory(uid) {
+      if (!uid) {
+        console.log("Tidak ada UID, melewati pemuatan riwayat");
+        return;
+      }
+
       try {
         const res = await fetch(`${BASE_WORKER_URL}/api/history?uid=${uid}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          console.error("Gagal memuat riwayat:", res.status);
+          return;
+        }
 
         const data = await res.json();
-        if (data && data.history && data.history.length > 0) {
+        if (data?.history?.length > 0) {
           const container = document.getElementById('message-container');
           if (!container) return;
 
           // Hapus timer welcome pesan jika riwayat ada
-          if (welcomeTimer) clearTimeout(welcomeTimer);
-          removeTypingIndicator();
+          if (window.welcomeTimer) clearTimeout(window.welcomeTimer);
+          if (typeof removeTypingIndicator === 'function') removeTypingIndicator();
 
           // Clear obrolan lama jika belum dimasukkan
           const existingBubbles = container.querySelectorAll('.assya-bubble');
@@ -104,12 +129,24 @@
 
           // Render Ulang Riwayat dari KV
           data.history.forEach(item => {
-            addMessageToUI(item.sender, item.text, null, false);
+            if (typeof addMessageToUI === 'function') {
+              addMessageToUI(item.sender, item.text, null, false);
+            }
           });
         }
       } catch (e) {
         console.error("Gagal memuat riwayat KV:", e);
       }
+    }
+
+    // Cek apakah ada UID di localStorage (fallback) sebelum initFirebase selesai
+    const savedUid = localStorage.getItem('assya_user_uid');
+    if (savedUid && !window.currentUser) {
+      setTimeout(() => {
+        if (!window.currentUser) {
+          loadUserChatHistory(savedUid);
+        }
+      }, 1000);
     }
 
     initFirebase();
