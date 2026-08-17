@@ -755,5 +755,213 @@
       updateCartUI();
       renderWelcomeMessage();
     });
+  
+
+// Lisensi Proteksi Template
+document.addEventListener('DOMContentLoaded', function () {
+  const devRaw = '{{ site.TEMPLATE_LICENSE }}';
+  const metaLicenseEl = document.querySelector('meta[name="license"]');
+  const metaLicenseRaw = metaLicenseEl ? metaLicenseEl.getAttribute('content') : null;
+
+  function safeAtob(value) {
+    try {
+      return atob(String(value));
+    } catch (e) {
+      return String(value || '');
+    }
+  }
+
+  const devDecoded = safeAtob(devRaw);
+  const metaDecoded = safeAtob(metaLicenseRaw);
+
+  let second = 10;
+
+  if (devRaw && metaLicenseRaw) {
+    const matches = (
+      metaLicenseRaw === devRaw ||
+      metaLicenseRaw === devDecoded ||
+      metaDecoded === devRaw ||
+      metaDecoded === devDecoded
+    );
+    if (matches) return;
+  }
+
+    const lockStyleAndHtml = `
+<style>
+    :root {
+        --bg-overlay: rgba(0, 0, 0, 0.85);
+        --text-primary: #ffffff;
+        --text-secondary: rgba(255, 255, 255, 0.8);
+        --accent-color: #ff4444;
+        --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    }
+
+    body {
+        background: var(--bg-overlay) !important;
+        overflow: hidden !important;
+        margin: 0;
+        padding: 0;
+        font-family: var(--font-main);
+    }
+
+    #peringatan {
+        z-index: 9999999999;
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        text-align: center;
+        background: var(--bg-overlay);
+        color: var(--text-primary);
+    }
+
+    #peringatan h4 {
+        margin: 0 0 1.5rem;
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    #peringatan p {
+        margin: 0 0 1rem;
+        font-size: clamp(1rem, 2.5vw, 1.125rem);
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+        color: var(--text-secondary);
+    }
+
+    #aktivasi {
+        font-size: clamp(2.5rem, 8vw, 4rem);
+        font-weight: 700;
+        color: var(--accent-color);
+        margin-top: 1rem;
+    }
+
+    @media (max-width: 680px) {
+        #peringatan {
+            padding: 1rem;
+        }
+    }
+</style>
+
+<div id="peringatan">
+    <h4>馃敀 Template is Locked Up</h4>
+    <p>Meta license template tidak valid.<br>Mohon jangan menghapus / merubah license.</p>
+    <span id="aktivasi">${second}</span>
+</div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', lockStyleAndHtml);
+    const aktivasiEl = document.getElementById('aktivasi');
+    const lockInterval = setInterval(function () {
+        second--;
+        if (aktivasiEl) aktivasiEl.textContent = second;
+        if (second <= 0) {
+            clearInterval(lockInterval);
+            window.location.href = "https://daffadevhosting.github.io/";
+        }
+    }, 1000);
+});
   </script>
+
+<script>
+(() => {
+  const installButton = document.getElementById("pwa-install-btn");
+  if (!installButton) return;
+
+  window.addEventListener("assya:pwa-installable", () => {
+    if (window.isAssyaPWA()) return;
+    installButton.classList.remove("hidden");
+    installButton.classList.add("flex");
+  });
+
+  window.addEventListener("assya:pwa-installed", () => {
+    installButton.classList.add("hidden");
+    installButton.classList.remove("flex");
+  });
+})();
+</script>
+
+<script>
+(() => {
+  "use strict";
+
+  const PWA_CONFIG = {
+    serviceWorker: "/sw.js",
+    themeColor: "#075e54",
+    appName: "Assya AI"
+  };
+
+  let deferredInstallPrompt = null;
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const registration = await navigator.serviceWorker.register(
+          PWA_CONFIG.serviceWorker,
+          { scope: "/" }
+        );
+        console.log("[PWA] Service Worker aktif:", registration.scope);
+      } catch (error) {
+        console.error("[PWA] Gagal register Service Worker:", error);
+      }
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", event => {
+    console.log("[PWA] beforeinstallprompt tersedia");
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    document.documentElement.classList.add("pwa-installable");
+    window.dispatchEvent(new CustomEvent("assya:pwa-installable"));
+  });
+
+  window.installAssyaPWA = async function () {
+    if (!deferredInstallPrompt) {
+      console.log("[PWA] Install prompt belum tersedia.");
+      return false;
+    }
+
+    try {
+      deferredInstallPrompt.prompt();
+      const result = await deferredInstallPrompt.userChoice;
+      console.log("[PWA] User choice:", result.outcome);
+      deferredInstallPrompt = null;
+      document.documentElement.classList.remove("pwa-installable");
+      return result.outcome === "accepted";
+    } catch (error) {
+      console.error("[PWA] Install error:", error);
+      return false;
+    }
+  };
+
+  window.addEventListener("appinstalled", () => {
+    console.log("[PWA] Assya AI berhasil diinstall.");
+    deferredInstallPrompt = null;
+    document.documentElement.classList.remove("pwa-installable");
+    window.dispatchEvent(new CustomEvent("assya:pwa-installed"));
+  });
+
+  window.isAssyaPWA = function () {
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true
+    );
+  };
+
+  function updateThemeColor(color) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", color);
+    }
+  }
+
+  updateThemeColor(PWA_CONFIG.themeColor);
+})();
+</script>
+
+
 
