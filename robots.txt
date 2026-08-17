@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://as-syariahbordir.vercel.app/sitemap.xml
