@@ -35,6 +35,15 @@
         // Tunggu setPersistence selesai sebelum melanjutkan
         await setPersistence(auth, browserLocalPersistence);
 
+        // Expose Firebase Auth ke window untuk digunakan di module.html
+        window.fbAuth = auth;
+        window.firebaseAuth = {
+          onAuthStateChanged,
+          signOut,
+          GoogleAuthProvider,
+          signInWithPopup
+        };
+
         const provider = new GoogleAuthProvider();
 
         // Listen status login pengguna saat refresh atau pertama kali dimuat

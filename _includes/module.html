@@ -1,75 +1,56 @@
-  <!-- Firebase JS SDK (v11 Modular) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-      getAuth, 
-      signInWithCustomToken, 
-      signInAnonymously, 
-      GoogleAuthProvider, 
-      signInWithPopup, 
-      signOut, 
-      onAuthStateChanged 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { 
-      getFirestore, 
-      collection, 
-      addDoc, 
-      onSnapshot, 
-      serverTimestamp 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut, signInAnonymously, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "{{ site.API_KEY }}",
-      authDomain: "{{ site.AUTH_DOMAIN }}",
-      projectId: "{{ site.PROJECT_ID }}",
-      storageBucket: "{{ site.STORAGE_BUCKET }}",
-      messagingSenderId: "{{ site.SENDER_ID }}",
-      appId: "{{ site.APP_ID }}"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    // Gunakan auth dari script.html (sudah diinisialisasi dengan config dari Worker)
+    const auth = window.fbAuth || null;
     const appId = 'as-syariahputra';
 
-    window.fbAuth = auth;
-    window.fbDb = db;
+    const BASE_WORKER_URL = 'https://assya-ai.sendaljepit.workers.dev'
+
     window.fbAppId = appId;
 
     let currentUser = null;
 
-    async function initFirebase() {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        try {
-          await signInAnonymously(auth);
-        } catch (e) {
-          console.error("Gagal login anonim:", e);
-        }
+    // Jika auth belum ada, tunggu sebentar (fallback)
+    function waitForAuth() {
+      if (window.fbAuth) {
+        setupAuthListener();
+      } else {
+        setTimeout(waitForAuth, 200);
       }
     }
 
-    initFirebase();
+    function setupAuthListener() {
+      const currentAuth = window.fbAuth || auth;
+      if (!currentAuth) return;
+      
+      // Cek apakah sudah ada listener (hindari duplicate)
+      if (window.authListenerSetup) return;
+      window.authListenerSetup = true;
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      window.currentUser = user;
-      updateAuthUI(user);
+      onAuthStateChanged(currentAuth, (user) => {
+        currentUser = user;
+        window.currentUser = user;
+        updateAuthUI(user);
 
-      if (user && !user.isAnonymous) {
-        listenUserPurchaseHistory(user.uid);
-      }
-    });
+        if (user && !user.isAnonymous) {
+          listenUserPurchaseHistory(user.uid);
+        }
+      });
+    }
+
+    // Mulai tunggu auth
+    waitForAuth();
 
     window.loginWithGoogle = async function() {
+      const currentAuth = window.fbAuth || auth;
+      if (!currentAuth) {
+        showToast("Firebase belum siap. Silakan tunggu sebentar.");
+        return;
+      }
       const provider = new GoogleAuthProvider();
       try {
-        const result = await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(currentAuth, provider);
         showToast(`Selamat datang, ${result.user.displayName || 'Pengguna'}!`);
       } catch (error) {
         showToast("Proses login Google dibatalkan atau gagal.");
@@ -77,9 +58,19 @@
     };
 
     window.logoutUser = async function() {
+      const currentAuth = window.fbAuth || auth;
+      if (!currentAuth) {
+        showToast("Firebase belum siap. Silakan tunggu sebentar.");
+        return;
+      }
       try {
-        await signOut(auth);
-        await signInAnonymously(auth);
+        const uid = currentAuth.currentUser?.uid;
+        if (uid) {
+          await clearAllChatHistory();
+        }
+        await signOut(currentAuth);
+        await signInAnonymously(currentAuth);
+        clearChatContainer();
         showToast("Berhasil keluar dari akun.");
         closeProfileModal();
       } catch (error) {
@@ -87,54 +78,106 @@
       }
     };
 
-    window.saveChatToFirestore = async function(sender, messageText) {
-      if (!auth.currentUser) return;
-      const uid = auth.currentUser.uid;
+    function clearChatContainer() {
+      const chatContainer = document.getElementById('chat-messages-container');
+      if (chatContainer) {
+        chatContainer.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <ion-icon name="chatbubble-ellipses-outline" class="text-5xl mb-3 text-emerald-600"></ion-icon>
+            <p class="text-sm font-medium text-slate-700">Selamat Datang di As-Syariah Bordir</p>
+            <p class="text-xs text-gray-500 mt-1">Mulai percakapan dengan Assya AI</p>
+          </div>
+        `;
+      }
+    }
+
+    window.clearAllChatHistory = async function() {
+      const currentAuth = window.fbAuth || auth;
+      const uid = currentAuth?.currentUser?.uid;
+      if (!uid) {
+        showToast("Anda belum login!");
+        return;
+      }
+      
       try {
-        const chatCol = collection(db, 'artifacts', appId, 'users', uid, 'chat_history');
-        await addDoc(chatCol, {
-          sender: sender,
-          text: messageText,
-          timestamp: serverTimestamp()
+        const response = await fetch(`${BASE_WORKER_URL}/api/clear-chat?uid=${uid}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
+        
+        if (response.ok) {
+          clearChatContainer();
+          showToast("Riwayat chat berhasil dihapus!");
+        } else {
+          showToast("Gagal menghapus riwayat chat.");
+        }
       } catch (err) {
-        console.error("Gagal menyimpan percakapan:", err);
+        console.error("Error menghapus history chat KV:", err);
+        showToast("Gagal menghapus riwayat chat.");
       }
     };
 
-    window.savePurchaseToFirestore = async function(cartItems, totalAmount) {
-      if (!auth.currentUser) return;
-      const uid = auth.currentUser.uid;
+    window.saveChatToKV = async function(sender, messageText) {
+      const currentAuth = window.fbAuth || auth;
+      const uid = currentAuth?.currentUser?.uid;
+      if (!uid) return;
       try {
-        const purchaseCol = collection(db, 'artifacts', appId, 'users', uid, 'purchase_history');
-        await addDoc(purchaseCol, {
-          items: cartItems,
-          total: totalAmount,
-          status: "Menunggu Konfirmasi Admin",
-          createdAt: serverTimestamp(),
-          formattedDate: new Date().toLocaleDateString('id-ID', {
-            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        await fetch('${BASE_WORKER_URL}/api/save-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uid: uid,
+            sender: sender,
+            text: messageText
+          })
+        });
+      } catch (err) {
+        console.error("Gagal menyimpan percakapan ke KV:", err);
+      }
+    };
+
+    window.savePurchaseToKV = async function(cartItems, totalAmount) {
+      const currentAuth = window.fbAuth || auth;
+      const uid = currentAuth?.currentUser?.uid;
+      if (!uid) return;
+      try {
+        await fetch('${BASE_WORKER_URL}/api/save-purchase', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uid: uid,
+            items: cartItems,
+            total: totalAmount
           })
         });
         showToast("Transaksi tersimpan di Riwayat Pembelian!");
       } catch (err) {
-        console.error("Gagal menyimpan transaksi:", err);
+        console.error("Gagal menyimpan transaksi ke KV:", err);
       }
     };
 
-    function listenUserPurchaseHistory(uid) {
+    async function loadUserPurchasesFromKV(uid) {
       try {
-        const purchaseCol = collection(db, 'artifacts', appId, 'users', uid, 'purchase_history');
-        onSnapshot(purchaseCol, (snapshot) => {
-          const purchases = [];
-          snapshot.forEach((doc) => {
-            purchases.push({ id: doc.id, ...doc.data() });
-          });
-          renderPurchaseHistoryUI(purchases);
-        });
+        const response = await fetch(`${BASE_WORKER_URL}/api/purchases?uid=${uid}`);
+        if (response.ok) {
+          const data = await response.json();
+          return data.purchases || [];
+        }
       } catch (err) {
-        console.error("Firestore Error:", err);
+        console.error("Gagal memuat riwayat pembelian dari KV:", err);
       }
+      return [];
+    }
+
+    async function listenUserPurchaseHistory(uid) {
+      const purchases = await loadUserPurchasesFromKV(uid);
+      renderPurchaseHistoryUI(purchases);
     }
 
     function updateAuthUI(user) {
